@@ -1,6 +1,9 @@
 import socket
 import sys
 import os
+import traceback
+import mimetypes
+
 
 def response_ok(body=b"This is a minimal response", mimetype=b"text/plain"):
     """
@@ -25,8 +28,8 @@ def response_ok(body=b"This is a minimal response", mimetype=b"text/plain"):
                 body,
             ])
 
+
 def parse_request(request):
-    
     method, uri, version = request.split("\r\n")[0].split(" ")
 
     if method != "GET":
@@ -50,9 +53,12 @@ def response_not_found():
     # TODO: Construct and return a 404 "not found" response
     # You can re-use most of the code from the 405 Method Not
     # Allowed response.
+    return b"\r\n".join([
+                b"HTTP/1.1 404 Not Found",
+                b"",
+                b"You can't do that on this server!, Sorry",
+            ])
 
-    pass
-    
 
 def resolve_uri(uri):
     """
@@ -88,9 +94,25 @@ def resolve_uri(uri):
 
     # Hint: When opening a file, use open(filename, "rb") to open and read the
     # file as a stream of bytes.
+    local_path = os.path.join('webroot', *uri.split('/'))
+    directory = 'images'
+    if uri == '/images' or uri == '/images/':
+        content = ','.join(os.listdir(os.path.join('webroot',
+                                                   directory))).encode()
+        mime_type = 'text/plain'.encode()
 
-    content = b"not implemented"
-    mime_type = b"not implemented"
+    elif uri == '/':
+        content = ','.join(os.listdir(os.path.join('webroot', ""))).encode()
+        mime_type = 'text/plain'.encode()
+
+    elif not os.path.exists(local_path):
+        raise NameError
+
+    elif os.path.exists(local_path):
+        print('here i')
+        with open(local_path, 'rb') as f:
+            content = f.read()
+        mime_type = mimetypes.guess_type(local_path)[0].encode()
 
     return content, mime_type
 
@@ -114,10 +136,11 @@ def server(log_buffer=sys.stderr):
                     data = conn.recv(1024)
                     request += data.decode('utf8')
 
-                    #if len(data) < 1024:
+                    # if len(data) < 1024:
                     #    break
                     if b'\r\n\r\n' in data:
                         break
+                print("Request received:\n{}\n\n".format(request))
 
                 try:
                     uri = parse_request(request)
@@ -128,20 +151,26 @@ def server(log_buffer=sys.stderr):
                     # specified by uri can't be found. If it does raise a
                     # NameError, then let response get response_not_found()
                     # instead of response_ok()
-                    body, mimetype = resolve_uri(uri)
-                    response = response_ok(body=body, mimetype=mimetype)
+                    try:
+                        body, mimetype = resolve_uri(uri)
+                    except NameError:
+                        response = response_not_found()
+                    else:
+                        response = response_ok(body=body, mimetype=mimetype)
 
                 conn.sendall(response)
+            except Exception:
+                traceback.print_exc()
             finally:
                 conn.close()
 
     except KeyboardInterrupt:
         sock.close()
         return
+    except Exception:
+        traceback.print_exc()
 
 
 if __name__ == '__main__':
     server()
     sys.exit(0)
-
-

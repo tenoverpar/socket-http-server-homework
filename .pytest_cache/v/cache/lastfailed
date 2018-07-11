@@ -1,0 +1,12 @@
+{
+  "tests.py::WebTestCase::test_get_404": true,
+  "tests.py::WebTestCase::test_get_sample_1_png": true,
+  "tests.py::WebTestCase::test_get_sample_1_png_mime_type": true,
+  "tests.py::WebTestCase::test_get_sample_balls_jpeg": true,
+  "tests.py::WebTestCase::test_get_sample_scene_balls_jpeg_mime_type": true,
+  "tests.py::WebTestCase::test_get_sample_test_content": true,
+  "tests.py::WebTestCase::test_get_sample_test_mime_type": true,
+  "tests.py::WebTestCase::test_images_index": true,
+  "tests.py::WebTestCase::test_port_yields_method_not_allowed": true,
+  "tests.py::WebTestCase::test_root_index": true
+}
